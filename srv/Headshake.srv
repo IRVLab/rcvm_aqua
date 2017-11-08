@@ -1,0 +1,4 @@
+int32 cycles
+int32 emphasis
+---
+bool response
