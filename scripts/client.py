@@ -22,5 +22,5 @@ def headshake_client(cycles, emphasis):
         print "Service call failed: %s"%e
 
 if __name__ == '__main__':
-    nod_client(2, 0.6)
+    nod_client(4, 0.6)
     headshake_client(4, 0.1)
