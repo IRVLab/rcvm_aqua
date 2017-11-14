@@ -8,12 +8,17 @@ from rcvm.srv import *
 def handle_nod(req):
     print "Nodding %s times, with an emphasis of %s"%(req.cycles, req.emphasis)
 
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(60)
     pub = rospy.Publisher('aqua/command', Command, queue_size=10)
 
     pitches = list()
     for i in xrange(req.cycles):
-	pitches.extend([0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
+	up = [1] * 25
+	pitches.extend(up)
+	down = [-1] * 30
+	pitches.extend(down)
+
+    pitches.extend([1]* 15)
 
     while not rospy.is_shutdown():
 	msg = Command()
@@ -30,12 +35,17 @@ def handle_nod(req):
 def handle_headshake(req):
     print "Shaking head %s times, with an emphasis of %s"%(req.cycles, req.emphasis)
 
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(60)
     pub = rospy.Publisher('aqua/command', Command, queue_size=10)
 
     yaws = list()
     for i in xrange(req.cycles):
-	yaws.extend([0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
+	right = [1] * 40
+	yaws.extend(right)
+	left = [-1] * 50
+	yaws.extend(left)
+
+    yaws.extend([1] * 20)
 
     while not rospy.is_shutdown():
 	msg = Command()
@@ -51,10 +61,10 @@ def handle_headshake(req):
 
 def rcvm_server():
     rospy.init_node('rcvm_server')
-    nod = rospy.Service('nod_service', Nod, handle_nod)
+    nod = rospy.Service('/rcvm/nod', Nod, handle_nod)
     print "Initialized nod server"
 
-    headshake = rospy.Service('headshake_service', Headshake, handle_headshake)
+    headshake = rospy.Service('rcvm/headshake', Headshake, handle_headshake)
     print "Initialized headshake server"
 
     rospy.spin()

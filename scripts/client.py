@@ -4,18 +4,18 @@ import rospy
 from rcvm.srv import *
 
 def nod_client(cycles, emphasis):
-    rospy.wait_for_service('nod_service')
+    rospy.wait_for_service('rcvm/nod')
     try:
-        nod = rospy.ServiceProxy('nod_service', Nod)
+        nod = rospy.ServiceProxy('rcvm/nod', Nod)
         resp = nod(cycles, emphasis)
         print resp
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
 
 def headshake_client(cycles, emphasis):
-    rospy.wait_for_service('headshake_service')
+    rospy.wait_for_service('rcvm/headshake')
     try:
-        headshake = rospy.ServiceProxy('headshake_service', Headshake)
+        headshake = rospy.ServiceProxy('rcvm/headshake', Headshake)
         resp = headshake(cycles, emphasis)
         print resp
     except rospy.ServiceException, e:
