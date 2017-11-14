@@ -23,7 +23,7 @@ def handle_nod(req):
     while not rospy.is_shutdown():
 	msg = Command()
 	msg.pitch = pitches.pop(0)
-	rospy.loginfo(msg)
+#	rospy.loginfo(msg)
 	pub.publish(msg)
 	rate.sleep()
 
@@ -51,7 +51,7 @@ def handle_headshake(req):
 	msg = Command()
 	msg.yaw = yaws.pop(0)
 	rospy.loginfo(msg)
-	pub.publish(msg)
+#	pub.publish(msg)
 	rate.sleep()
 
 	if not yaws:
