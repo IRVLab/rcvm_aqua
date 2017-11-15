@@ -50,8 +50,8 @@ def handle_headshake(req):
     while not rospy.is_shutdown():
 	msg = Command()
 	msg.yaw = yaws.pop(0)
-	rospy.loginfo(msg)
-#	pub.publish(msg)
+#	rospy.loginfo(msg)
+	pub.publish(msg)
 	rate.sleep()
 
 	if not yaws:
