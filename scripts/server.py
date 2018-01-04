@@ -6,13 +6,19 @@ from rcvm.srv import *
 
 
 def handle_nod(req):
-    print "Nodding %s times, with an emphasis of %s"%(req.cycles, req.emphasis)
+    cycles = req.cycles
+    emphasis = req.emphasis
+
+    if cycles == 0:
+	cycles = 3
+ 
+    print "Nodding %s times, with an emphasis of %s"%(cycles, emphasis)
 
     rate = rospy.Rate(60)
     pub = rospy.Publisher('aqua/command', Command, queue_size=10)
 
     pitches = list()
-    for i in xrange(req.cycles):
+    for i in xrange(cycles):
 	up = [1] * 25
 	pitches.extend(up)
 	down = [-1] * 30
@@ -33,13 +39,19 @@ def handle_nod(req):
     return NodResponse(True)
 
 def handle_headshake(req):
-    print "Shaking head %s times, with an emphasis of %s"%(req.cycles, req.emphasis)
+    cycles = req.cycles
+    emphasis = req.emphasis
+
+    if cycles == 0:
+	cycles = 3
+
+    print "Shaking head %s times, with an emphasis of %s"%(cycles, emphasis)
 
     rate = rospy.Rate(60)
     pub = rospy.Publisher('aqua/command', Command, queue_size=10)
 
     yaws = list()
-    for i in xrange(req.cycles):
+    for i in xrange(cycles):
 	right = [1] * 40
 	yaws.extend(right)
 	left = [-1] * 50
