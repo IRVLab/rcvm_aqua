@@ -1,4 +1,4 @@
-int32 cycles
+string type
 float32 emphasis
 ---
 bool response

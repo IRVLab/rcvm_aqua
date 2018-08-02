@@ -1,4 +1,4 @@
 int32 cycles
-int32 emphasis
+float32 emphasis
 ---
 bool response

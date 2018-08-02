@@ -1,4 +1,4 @@
-int32 cycles
+duration duration
 float32 emphasis
 ---
 bool response
