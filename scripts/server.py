@@ -2,11 +2,11 @@
 
 import rospy
 from aquacore.msg import Command
-from rcvm.srv import *
-
+from rcvm_aqua.srv import *
 
 # A head affirmativeding motion, indicating affirmative.
 def handle_affirmative(req):
+
     # Check defined emphasis and set to default if none, return false if invalid.
     emphasis = req.emphasis
     if emphasis == 0 or emphasis == None:
@@ -87,7 +87,12 @@ def handle_im_lost(req):
 
 # The centralized kineme server.
 def kineme_server():
-    rospy.init_affirmativee('rcvm_server')
+    rospy.init_node('rcvm_server')
+
+    params = {}
+    params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_FIXED_DEPTH
+    #params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_LOCAL_THRUST
+    ac = AutopilotClient(params)
 
     #Initialize all services.
 

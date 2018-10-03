@@ -22,5 +22,6 @@
   <run_depend>aquacore</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>message_runtime</run_depend>
+  <run_depend>aquaautopilot</run_depend>
 
 </package>
