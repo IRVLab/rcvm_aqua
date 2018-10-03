@@ -17,11 +17,23 @@
   <build_depend>aquacore</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>angles</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>tf</build_depend>
+
 
   <run_depend>rospy</run_depend>
   <run_depend>aquacore</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>aquaautopilot</run_depend>
+  <run_depend>aquadepth</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>angles</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>ar_recog</run_depend>
 
 </package>

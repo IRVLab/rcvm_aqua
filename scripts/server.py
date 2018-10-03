@@ -1,18 +1,42 @@
 #!/usr/bin/env python
 
 import rospy
-from aquacore.msg import Command
 from rcvm_aqua.srv import *
+
+from aquacore.msg import AutopilotModes
+from rcvm_ac import RCVMAutopilotClient
+
+ac = None
 
 # A head affirmativeding motion, indicating affirmative.
 def handle_affirmative(req):
-
     # Check defined emphasis and set to default if none, return false if invalid.
     emphasis = req.emphasis
     if emphasis == 0 or emphasis == None:
         emphasis == 0.5
     elif emphasis < 0.0 or emphasis > 1.0:
         return AffirmativeResponse(False)
+
+
+    roll_in_deg = 90
+    pitch_in_deg = 0
+    try:
+
+        print 'Going straight'
+        rpy_from_imu_to_global = ac.get_rpy_of_imu_in_global()
+        target_depth = ac.current_depth
+        target_angles = [roll_in_deg, pitch_in_deg, rpy_from_imu_to_global[2]*180/pi]
+        dt_in_sec = rospy.Duration(20)
+        vx = 0.8
+        vz = 0
+
+        ac.do_straight_line(dt_in_sec, target_angles, target_depth, vx, vz)
+
+
+    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+        print e
+        return AffirmativeResponse(False)
+    
  
     return AffirmativeResponse(True)
 
@@ -92,7 +116,7 @@ def kineme_server():
     params = {}
     params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_FIXED_DEPTH
     #params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_LOCAL_THRUST
-    ac = AutopilotClient(params)
+    ac = RCVMAutopilotClient(params)
 
     #Initialize all services.
 
@@ -141,4 +165,4 @@ def kineme_server():
     rospy.spin()
 
 if __name__ == "__main__":
-        rcvm_server()
+        kineme_server()

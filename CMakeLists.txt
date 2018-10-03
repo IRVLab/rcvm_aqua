@@ -6,6 +6,9 @@ find_package(catkin REQUIRED COMPONENTS
   aquacore
   std_msgs
   message_generation
+  dynamic_reconfigure
+  geometry_msgs
+  tf
 )
 
 ################################################
@@ -52,8 +55,10 @@ catkin_package(
   CATKIN_DEPENDS 
     rospy 
     aquacore
+    aquadepth
     std_msgs
     message_runtime
+    tf
 #  DEPENDS system_lib
 )
 
