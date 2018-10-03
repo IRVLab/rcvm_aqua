@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rcvm)
+project(rcvm_aqua)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy
@@ -15,8 +15,21 @@ find_package(catkin REQUIRED COMPONENTS
 # Generate services in the 'srv' folder
  add_service_files(
    FILES
-   Nod.srv
-   Headshake.srv
+   Affirmative.srv
+   Attention.srv
+   Danger.srv
+   DiveAscend.srv
+   DiveDescend.srv
+   DiveWait.srv
+   FollowMe.srv
+   ImLost.srv
+   IndicateObject.srv
+   Malfunction.srv
+   Negative.srv
+   Possible.srv
+   RepeatLast.srv
+   ReportEnergy.srv
+   StayHere.srv
  )
 
 generate_messages(

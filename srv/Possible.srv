@@ -1,4 +1,3 @@
-int32 cycles
 float32 emphasis
 ---
 bool response
