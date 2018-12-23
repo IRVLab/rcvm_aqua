@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rcvm_aqua</name>
+  <version>0.1.0</version>
+  <description>Implementation of the RCVM kinemes for Aqua8</description>
+
+  <maintainer email="fulto081@umn.edu">Michael Fulton</maintainer>
+
+  <license>MIT</license>
+
+  <url type="website">https://github.umn.edu/fulto081/rcvm_aqua</url>
+
+  <author email="fulto081@umn.edu">Michael Fulton</author> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>rcvm_core</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>rcvm_core</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>rcvm_core</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+  <export>
+
+  </export>
+</package>
