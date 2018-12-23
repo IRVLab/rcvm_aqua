@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="rcvm_aqua" type="server.py" name="rcvm_server" respawn="true" respawn_delay="10">
+    </node>
+</launch>
