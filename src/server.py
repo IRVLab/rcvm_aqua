@@ -5,12 +5,20 @@ from time import sleep
 
 import rospy
 
-from rcvm_core.srv import *
+from aquacore.msg import AutopilotModes
+from rcvm_pilot_client import RCVMPilotClient
+
+from rcvm_core.srv import Affirmative, Attention, Danger, FollowMe, IndicateMovement, IndicateObject
+from rcvm_core.srv import IndicateStay, Lost, Malfunction, Negative, Possibly, RepeatLast, ReportBattery
+
+params = {}
+params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_FIXED_DEPTH
+#params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_LOCAL_THRUST
+pc = RCVMPilotClient(params)
 
 '''
     Service handlers.
 '''
-
 def affirmative_handler(req):
     pass
 
@@ -49,9 +57,6 @@ def repeat_last_handler(req):
 
 def report_battery_handler(req):
     pass
-
-
-
 
 if __name__ == "__main__":
     rospy.init_node('rcvm_server', argv=None, anonymous=True)
