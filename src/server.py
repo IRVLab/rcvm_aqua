@@ -14,6 +14,7 @@ from rcvm_core.srv import IndicateStay, Lost, Malfunction, Negative, Possibly, R
 
 from timeout import Timeout
 
+rospy.init_node('rcvm_server', argv=None, anonymous=True)
 params = {}
 #params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_FIXED_DEPTH
 params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_LOCAL_THRUST
@@ -231,10 +232,8 @@ def report_battery_handler(req):
 
 
 if __name__ == "__main__":
-    rospy.init_node('rcvm_server', argv=None, anonymous=True)
     rospy.loginfo('Initializing Aqua8 RCVM server...')
 
-    #With the aircraft version and activation confirmed, we can advertise our services.
     rospy.Service('/rcvm/affirmative', Affirmative, affirmative_handler)
     rospy.Service('/rcvm/attention', Attention, attention_handler)
     rospy.Service('/rcvm/danger', Danger, danger_handler)
