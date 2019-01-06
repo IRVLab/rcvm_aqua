@@ -48,6 +48,8 @@ from aquacore.msg import StateMsg
 from aquacore.srv import SetAutopilotMode  
 import dynamic_reconfigure.client
 
+from timeout import Timeout
+
 class RCVMPilotClient:
     
     def __init__(self, params):
@@ -179,7 +181,7 @@ class RCVMPilotClient:
         
 
 
-    def do_relative_angle_change(self, delta_angles_deg, target_depth, vx, vz):
+    def do_relative_angle_change(self, delta_angles_deg, target_depth, vx, vz, time_sec=None):
 
         print 'da: ', delta_angles_deg
         rpy_from_imu_to_global = self.get_rpy_of_imu_in_global()
@@ -200,32 +202,32 @@ class RCVMPilotClient:
                                abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi, 
                                abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi)
         
-
-        rate = rospy.Rate(10.0)
-        while (not rospy.is_shutdown()) and \
-                ((abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > 5) or \
-                (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 5) or \
-                (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 5)):
-        
-            pose_and_vel = PoseStamped()
-            pose_and_vel.pose.orientation.x = rotation_from_target_to_global[0]
-            pose_and_vel.pose.orientation.y = rotation_from_target_to_global[1]
-            pose_and_vel.pose.orientation.z = rotation_from_target_to_global[2]
-            pose_and_vel.pose.orientation.w = rotation_from_target_to_global[3]
-            pose_and_vel.pose.position.x = vx
-            pose_and_vel.pose.position.y = vz # heave
-            pose_and_vel.pose.position.z = target_depth 
-            pose_and_vel.header.stamp = rospy.Time.now()
-            pose_and_vel.header.frame_id = '/latest_fix'
-
-            self.target_pose_pub.publish(pose_and_vel) 
-            rpy_from_imu_to_global = self.get_rpy_of_imu_in_global()
-            rate.sleep()
+        with Timeout(time_sec):
+            rate = rospy.Rate(10.0)
+            while (not rospy.is_shutdown()) and \
+                    ((abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > 5) or \
+                    (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 5) or \
+                    (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 5)):
             
-            print 'angle diff: ', (abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi, 
-                                   abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi, 
-                                   abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi)
-        
+                pose_and_vel = PoseStamped()
+                pose_and_vel.pose.orientation.x = rotation_from_target_to_global[0]
+                pose_and_vel.pose.orientation.y = rotation_from_target_to_global[1]
+                pose_and_vel.pose.orientation.z = rotation_from_target_to_global[2]
+                pose_and_vel.pose.orientation.w = rotation_from_target_to_global[3]
+                pose_and_vel.pose.position.x = vx
+                pose_and_vel.pose.position.y = vz # heave
+                pose_and_vel.pose.position.z = target_depth 
+                pose_and_vel.header.stamp = rospy.Time.now()
+                pose_and_vel.header.frame_id = '/latest_fix'
+
+                self.target_pose_pub.publish(pose_and_vel) 
+                rpy_from_imu_to_global = self.get_rpy_of_imu_in_global()
+                rate.sleep()
+                
+                print 'angle diff: ', (abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi, 
+                                    abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi, 
+                                    abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi)
+            
 
 
     def do_relative_depth_change(self, dz, vx, vz):
