@@ -124,6 +124,8 @@ class RCVMPilotClient:
 
     def do_straight_line(self, dt_in_sec, target_angles_in_deg, target_depth, vx, vz):
     
+        if type(dt_in_sec) == int:
+            dt_in_sec = rospy.Duration(dt_in_sec)
         rate = rospy.Rate(10)
         started_at = rospy.Time.now()
 
@@ -158,9 +160,9 @@ class RCVMPilotClient:
         rate = rospy.Rate(10.0)
         while (not rospy.is_shutdown()) and \
                 ((abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > 5) or \
-                 (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 5) or \
-                 (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 5)):
-            
+                (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 5) or \
+                (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 5)):
+                
             pose_and_vel = PoseStamped()
             pose_and_vel.pose.orientation.x = rotation_from_target_to_global[0]
             pose_and_vel.pose.orientation.y = rotation_from_target_to_global[1]
@@ -176,11 +178,9 @@ class RCVMPilotClient:
             rate.sleep()
 
             print 'angle diff: ', (abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi, 
-                                   abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi, 
-                                   abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi)
-        
-
-
+                                abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi, 
+                                abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi)
+            
     def do_relative_angle_change(self, delta_angles_deg, target_depth, vx, vz, time_sec=None):
 
         print 'da: ', delta_angles_deg
