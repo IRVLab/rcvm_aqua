@@ -200,22 +200,54 @@ def follow_me_handler(req):
 
 # TODO: Respond to movement vector. Right now it just indicates down.
 def indicate_movement_handler(req):
+    movement_vector = req.direction
+    z = movement_vector.z 
+    y = movement_vector.y
+
+    ind_ang = [0, 0, 0]
+    back_ang = [0, 0, 0]
+    move_ang = [0, 0, 0]
+
+    if z > 0:
+        ind_ang[1] = -45
+        back_ang[1] = 80
+        move_ang[1] = -80
+    elif z < 0:
+        ind_ang[1]  = 45
+        back_ang[1] = -80
+        move_ang[1] = 80
+
+    if y > 0:
+        ind_ang[2] = -45
+        back_ang[2] = 135
+        move_ang[2] = -135
+    elif y < 0:
+        ind_ang[2]  = 45
+        back_ang[2] = -135
+        move_ang[2] = 135
+
     d = pc.current_depth
-    vx = 0 
+    vx = 0.25
     vz = 0
 
     rospy.loginfo('  [INDICATE_MOVEMENT]: Kineme initiated.')
-    rospy.loginfo('  [INDICATE_MOVEMENT]: Pitch down and move forward.')
-    pc.do_relative_angle_change([0,30,0], d, 0.25, vz)
-    rospy.loginfo('  [INDICATE_MOVEMENT]: Pitch back up to look at diver.')
-    pc.do_relative_angle_change([0,-60,0], d, vx, vz)
-    rospy.loginfo('  [INDICATE_MOVEMENT]: Pitch back down.')
-    pc.do_relative_angle_change([0,60,0], d, vx, vz)
+    rospy.loginfo('  [INDICATE_MOVEMENT]: Rotate to movement angle')
+    pc.do_relative_angle_change(ind_ang, d, vx, vz)
 
-    rospy.loginfo('  [INDICATE_MOVEMENT]: Move foreward for 2 seconds.')
+    rospy.loginfo('  [INDICATE_MOVEMENT]: Move foreward a bit')
     rads = pc.get_rpy_of_imu_in_global()
     degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
-    pc.do_straight_line(2, degs, d, 0.3, vz)
+    pc.do_straight_line(4, degs, d, 0.3, vz)
+
+    rospy.loginfo('  [INDICATE_MOVEMENT]: Rotate back to the diver')
+    pc.do_relative_angle_change(back_ang, d, 0.4, vz)
+    rospy.loginfo('  [INDICATE_MOVEMENT]: Rotate back to the movement angle')
+    pc.do_relative_angle_change(move_ang, d, vx, vz)
+
+    rospy.loginfo('  [INDICATE_MOVEMENT]: Move foreward for 4 seconds.')
+    rads = pc.get_rpy_of_imu_in_global()
+    degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
+    pc.do_straight_line(4, degs, d, 0.5, vz)
 
     rospy.loginfo('  [INDICATE_MOVEMENT]: Kineme completed!')
     
