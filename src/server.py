@@ -6,7 +6,7 @@ from math import pi
 
 import rospy
 
-from aquacore.msg import AutopilotModes
+from aquacore.msg import AutopilotModes, PeriodicLegCommand
 from rcvm_pilot_client import RCVMPilotClient
 
 from rcvm_core.srv import Affirmative, Attention, Danger, FollowMe, IndicateMovement, IndicateObject
@@ -15,10 +15,14 @@ from rcvm_core.srv import IndicateStay, Lost, Malfunction, Negative, Possibly, R
 from timeout import Timeout
 
 rospy.init_node('rcvm_server', argv=None, anonymous=True)
+thrust_mode = rospy.get_param('/rcvm/thrust_mode', 'AUTOPILOT')
+rospy.set_param('/rcvm/thrust_mode', thrust_mode)
 params = {}
 #params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_FIXED_DEPTH
 params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_LOCAL_THRUST
 pc = RCVMPilotClient(params)
+
+leg_pub = rospy.message_pub = rospy.Publisher("/aqua/periodic_leg_command", PeriodicLegCommand, queue_size=10)
 
 '''
     Service handlers.
@@ -36,23 +40,76 @@ pc = RCVMPilotClient(params)
     TODO: Create timeouts handler to deal with autopilot failures.
 '''
 def affirmative_handler(req):
-    d = pc.current_depth
-    vx = 0 
-    vz = 0
+    if thrust_mode == 'PERIODIC':
+        rospy.loginfo('[AFFIRMATIVE] Periodic Leg Command version initiated.')
 
-    # Nod robot up and down (pitches of 20 deg from center)
-    rospy.loginfo(' [AFFIRMATIVE]: Initiating kinme.')
-    rospy.loginfo(' [AFFIRMATIVE]: Pitch down...')
-    pc.do_relative_angle_change([0, 20, 0], d, vx, vz)
-    rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-    pc.do_relative_angle_change([0, -40, 0], d, vx, vz)
-    rospy.loginfo(' [AFFIRMATIVE]: Now pitch down again...')
-    pc.do_relative_angle_change([0, 40, 0], d, vx, vz)
-    rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-    pc.do_relative_angle_change([0, -20, 0], d, vx, vz)
-    rospy.loginfo(' [AFFIRMATIVE]: Kineme complete!')
+        start = rospy.Time.now()
+        finish = start + rospy.Duration.from_sec(10)
 
-    return True
+        trans_zero_down = start + rospy.Duration.from_sec(2)
+        #first_down = trans_zero_down + rospy.Duration.from_sec(0.5)
+        trans_downup1 = trans_zero_down + rospy.Duration.from_sec(1)
+        first_up = trans_downup1 + rospy.Duration.from_sec(2)
+        trans_updown1 = first_up + rospy.Duration.from_sec(1)
+        second_down = trans_updown1 + rospy.Duration.from_sec(2)
+        trans_downup2 = second_down + rospy.Duration.from_sec(1)
+        second_up = trans_downup2 + rospy.Duration.from_sec(2)
+        trans_up_zero = second_up + rospy.Duration.from_sec(1)
+        
+
+        plc = PeriodicLegCommand()
+        plc.header.frame_id = '/aqua_base'
+
+        plc.header.stamp = rospy.Time.now()
+
+        rate = rospy.Rate(50)
+        current_offsets = [0,0,0,0,0,0]
+        offset_delta_quarter = (pi/4)/50
+        offset_delta_half = (pi/2)/50
+        offset_delta_full = (pi)/50
+
+        down = True
+
+        while rospy.Time.now() < finish:
+            plc.header.stamp = rospy.Time.now()
+            if down == True:
+                current_offsets[0] -= offset_delta_half
+                current_offsets[2] += offset_delta_half
+                current_offsets[3] -= offset_delta_half
+                current_offsets[5] += offset_delta_half
+            else:
+                current_offsets[0] += offset_delta_half
+                current_offsets[2] -= offset_delta_half
+                current_offsets[3] += offset_delta_half
+                current_offsets[5] -= offset_delta_half
+            plc.leg_offsets = current_offsets
+
+            if abs(current_offsets[0]) >= pi/4:
+                down = ~down
+
+            leg_pub.publish(plc)
+            rate.sleep()
+
+
+        return True
+    else:
+        d = pc.current_depth
+        vx = 0.5
+        vz = 0
+
+        # Nod robot up and down (pitches of 20 deg from center)
+        rospy.loginfo(' [AFFIRMATIVE]: Initiating kinme.')
+        rospy.loginfo(' [AFFIRMATIVE]: Pitch down...')
+        pc.do_relative_angle_change([0, 20, 0], d, vx, vz)
+        rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
+        pc.do_relative_angle_change([0, -25, 0], d, vx, vz)
+        rospy.loginfo(' [AFFIRMATIVE]: Now pitch down again...')
+        pc.do_relative_angle_change([0, 25, 0], d, vx, vz)
+        rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
+        pc.do_relative_angle_change([0, -25, 0], d, vx, vz)
+        rospy.loginfo(' [AFFIRMATIVE]: Kineme complete!')
+
+        return True
 
 def attention_handler(req):
     d = pc.current_depth
@@ -111,29 +168,35 @@ def danger_handler(req):
     return True
 
 def follow_me_handler(req):
-    d = pc.current_depth
-    vx = 0 
-    vz = 0
+    if thrust_mode == 'PERIODIC':
+        pass
+    else:
+        d = pc.current_depth
+        vx = 0.5
+        vz = 0
 
-    # Make a beckoning gesture with head, swim forward.
-    rospy.loginfo('  [FOLLOW_ME]: Kineme initiated.')
-    rospy.loginfo('  [FOLLOW_ME]: Beckon back')
-    pc.do_relative_angle_change([-20, -5, 30], d, vx, vz)
-    rospy.loginfo('  [FOLLOW_ME]: And back to center.')
-    pc.do_relative_angle_change([20, 5, -30], d, vx, vz)
-    rospy.loginfo('  [FOLLOW_ME]: Back once more')
-    pc.do_relative_angle_change([-20, -5, 30], d, vx, vz)
-    rospy.loginfo('  [FOLLOW_ME]: Back to center and turn around.')
-    pc.do_relative_angle_change([20, 5, 150], d, vx, vz)
+        # Make a beckoning gesture with head, swim forward.
+        rospy.loginfo('  [FOLLOW_ME]: Kineme initiated.')
+        rospy.loginfo('  [FOLLOW_ME]: Beckon back')
+        pc.do_relative_angle_change([30, -10, -30], d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: And back to center.')
+        pc.do_relative_angle_change([-30, 10, 30], d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: Back once more')
+        pc.do_relative_angle_change([30, -10, -30], d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: Back to center.')
+        pc.do_relative_angle_change([-30, 10, 30], d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: Turn around.')
+        pc.do_relative_angle_change([0, 0, -90], d, vx, vz)
+        pc.do_relative_angle_change([0, 0, -90], d, vx, vz)
 
-    rospy.loginfo('  [FOLLOW_ME]: Forward (away from diver) for 2 seconds.')
-    rads = pc.get_rpy_of_imu_in_global()
-    degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
-    pc.do_straight_line(2, degs, d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: Forward (away from diver) for 5 seconds.')
+        rads = pc.get_rpy_of_imu_in_global()
+        degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
+        pc.do_straight_line(5, degs, d, 0.6, vz)
 
-    rospy.loginfo('  [FOLLOW_ME]: Kineme completed!')
-    
-    return True
+        rospy.loginfo('  [FOLLOW_ME]: Kineme completed!')
+        
+        return True
 
 # TODO: Respond to movement vector. Right now it just indicates down.
 def indicate_movement_handler(req):
@@ -264,24 +327,27 @@ def malfunction_handler(req):
     
 
 def negative_handler(req):
-    d = pc.current_depth
-    vx = 0 
-    vz = 0
+    if thrust_mode == 'PERIODIC':
+        pass
+    else:
+        d = pc.current_depth
+        vx = 0.5
+        vz = 0
 
-    rospy.loginfo('  [NEGATIVE]: Kineme initiated.')
-    # Shake the robot's "head".  Yaws of 15 degrees from center.
-    rospy.loginfo('  [NEGATIVE]: Yaw right.')
-    pc.do_relative_angle_change([0, 0, 15], d, vx, vz)
-    rospy.loginfo('  [NEGATIVE]: Yaw left.')
-    pc.do_relative_angle_change([0, 0, -30], d, vx, vz)
-    rospy.loginfo('  [NEGATIVE]: Yaw right.')
-    pc.do_relative_angle_change([0, 0, 30], d, vx, vz)
-    rospy.loginfo('  [NEGATIVE]: Yaw left (back to center).')
-    pc.do_relative_angle_change([0, 0, -15], d, vx, vz)
+        rospy.loginfo('  [NEGATIVE]: Kineme initiated.')
+        # Shake the robot's "head".  Yaws of 15 degrees from center.
+        rospy.loginfo('  [NEGATIVE]: Yaw right.')
+        pc.do_relative_angle_change([0, 0, 15], d, vx, vz)
+        rospy.loginfo('  [NEGATIVE]: Yaw left.')
+        pc.do_relative_angle_change([0, 0, -30], d, vx, vz)
+        rospy.loginfo('  [NEGATIVE]: Yaw right.')
+        pc.do_relative_angle_change([0, 0, 30], d, vx, vz)
+        rospy.loginfo('  [NEGATIVE]: Yaw left (back to center).')
+        pc.do_relative_angle_change([0, 0, -15], d, vx, vz)
 
-    rospy.loginfo('  [NEGATIVE]: Kineme completed!')
-    
-    return True
+        rospy.loginfo('  [NEGATIVE]: Kineme completed!')
+        
+        return True
             
 def possibly_handler(req):
     d = pc.current_depth
@@ -358,8 +424,9 @@ if __name__ == "__main__":
     rospy.loginfo('Spinning forever until a service request is recieved.')    
 
     # Spin forever to avoid early shutdown.
-    rate = rospy.Rate(5)
+    rate = rospy.Rate(1)
     while not rospy.is_shutdown():
+        thrust_mode = rospy.get_param('/rcvm/thrust_mode' )
         rate.sleep()
         
 else:
