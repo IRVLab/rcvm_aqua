@@ -15,8 +15,7 @@ from rcvm_core.srv import IndicateStay, Lost, Malfunction, Negative, Possibly, R
 from timeout import Timeout
 
 rospy.init_node('rcvm_server', argv=None, anonymous=True)
-thrust_mode = rospy.get_param('/rcvm/thrust_mode', 'AUTOPILOT')
-rospy.set_param('/rcvm/thrust_mode', thrust_mode)
+thrust_mode = rospy.get_param('/rcvm/thrust_mode', 'RELATIVE')
 params = {}
 #params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_FIXED_DEPTH
 params['mode'] = AutopilotModes.AP_GLOBAL_ANGLES_LOCAL_THRUST
@@ -92,7 +91,8 @@ def affirmative_handler(req):
 
 
         return True
-    else:
+
+    elif thrust_mode == 'RELATIVE':
         d = pc.current_depth
         vx = 0.5
         vz = 0
@@ -110,6 +110,33 @@ def affirmative_handler(req):
         rospy.loginfo(' [AFFIRMATIVE]: Kineme complete!')
 
         return True
+
+    elif thrust_mode == 'GLOBAL':
+        d = pc.current_depth
+        vx = 0.5
+        vz = 0
+
+        rads = pc.get_rpy_of_imu_in_global()
+        degs = [rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi]
+
+        # Nod robot up and down (pitches of 20 deg from center)
+        rospy.loginfo(' [AFFIRMATIVE]: Initiating kinme.')
+        rospy.loginfo(' [AFFIRMATIVE]: Pitch down...')
+        degs[1] += 20
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
+        degs[1] -= 45
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo(' [AFFIRMATIVE]: Now pitch down again...')
+        degs[1] += 50
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
+        degs[1] -= 25
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo(' [AFFIRMATIVE]: Kineme complete!')
+
+        return True
+    
 
 def attention_handler(req):
     d = pc.current_depth
@@ -170,7 +197,7 @@ def danger_handler(req):
 def follow_me_handler(req):
     if thrust_mode == 'PERIODIC':
         pass
-    else:
+    elif thrust_mode == 'RELATIVE':
         d = pc.current_depth
         vx = 0.5
         vz = 0
@@ -197,6 +224,52 @@ def follow_me_handler(req):
         rospy.loginfo('  [FOLLOW_ME]: Kineme completed!')
         
         return True
+
+    elif thrust_mode == 'GLOBAL':
+        d = pc.current_depth
+        vx = 0.5
+        vz = 0
+
+        rads = pc.get_rpy_of_imu_in_global()
+        degs = [rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi]
+
+        # Make a beckoning gesture with head, swim forward.
+        rospy.loginfo('  [FOLLOW_ME]: Kineme initiated.')
+        rospy.loginfo('  [FOLLOW_ME]: Beckon back')
+        degs[0] += 30
+        degs[1] -=10
+        degs[2] -= 30
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: And back to center.')
+        degs[0] -= 30
+        degs[1] += 10
+        degs[2] += 30
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: Back once more')
+        degs[0] += 30
+        degs[1] -=10
+        degs[2] -= 30
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: Back to center.')
+        degs[0] -= 30
+        degs[1] += 10
+        degs[2] += 30
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo('  [FOLLOW_ME]: Turn around.')
+        degs[2] -= 90 
+        pc.goto_target_orientation(degs, d, vx, vz)
+        degs[2] -= 90 
+        pc.goto_target_orientation(degs, d, vx, vz)
+        
+        rospy.loginfo('  [FOLLOW_ME]: Forward (away from diver) for 5 seconds.')
+        rads = pc.get_rpy_of_imu_in_global()
+        degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
+        pc.do_straight_line(5, degs, d, 0.6, vz)
+
+        rospy.loginfo('  [FOLLOW_ME]: Kineme completed!')
+        
+        return True
+
 
 # TODO: Respond to movement vector. Right now it just indicates down.
 def indicate_movement_handler(req):
@@ -361,7 +434,34 @@ def malfunction_handler(req):
 def negative_handler(req):
     if thrust_mode == 'PERIODIC':
         pass
-    else:
+    elif thrust_mode == 'RELATIVE':
+        d = pc.current_depth
+        vx = 0.5
+        vz = 0
+
+        rads = pc.get_rpy_of_imu_in_global()
+        degs = [rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi]
+
+        rospy.loginfo('  [NEGATIVE]: Kineme initiated.')
+        # Shake the robot's "head".  Yaws of 15 degrees from center.
+        rospy.loginfo('  [NEGATIVE]: Yaw right.')
+        degs[2] += 15
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo('  [NEGATIVE]: Yaw left.')
+        degs[2] -= 45
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo('  [NEGATIVE]: Yaw right.')
+        degs[2] += 60
+        pc.goto_target_orientation(degs, d, vx, vz)
+        rospy.loginfo('  [NEGATIVE]: Yaw left (back to center).')
+        degs[2] -= 15
+        pc.goto_target_orientation(degs, d, vx, vz)
+
+        rospy.loginfo('  [NEGATIVE]: Kineme completed!')
+        
+        return True
+
+    elif thrust_mode == 'GLOBAL':
         d = pc.current_depth
         vx = 0.5
         vz = 0
@@ -380,6 +480,7 @@ def negative_handler(req):
         rospy.loginfo('  [NEGATIVE]: Kineme completed!')
         
         return True
+
             
 def possibly_handler(req):
     d = pc.current_depth
@@ -458,7 +559,6 @@ if __name__ == "__main__":
     # Spin forever to avoid early shutdown.
     rate = rospy.Rate(1)
     while not rospy.is_shutdown():
-        thrust_mode = rospy.get_param('/rcvm/thrust_mode' )
         rate.sleep()
         
 else:
