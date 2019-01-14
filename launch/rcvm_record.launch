@@ -1,4 +1,4 @@
 <launch>
 	<node pkg="rosbag" type="record" name="rosbag_record_rcvm_trials"
-       args="record -o /data/rcvm /aqua/command /aqua/period_leg_command /aqua/target_pose /tf"/>
+       args="record -o /data/rcvm /aqua/command /aqua/periodic_leg_command /aqua/target_pose /tf"/>
 </launch>
