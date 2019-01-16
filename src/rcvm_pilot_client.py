@@ -159,9 +159,9 @@ class RCVMPilotClient:
 
         rate = rospy.Rate(10.0)
         while (not rospy.is_shutdown()) and \
-                ((abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > 10) or \
-                (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 10) or \
-                (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 10)):
+                ((abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > 7) or \
+                (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 7) or \
+                (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 7)):
                 
             pose_and_vel = PoseStamped()
             pose_and_vel.pose.orientation.x = rotation_from_target_to_global[0]
@@ -204,9 +204,9 @@ class RCVMPilotClient:
         
         rate = rospy.Rate(10.0)
         while (not rospy.is_shutdown()) and \
-          ((abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > 5) or \
-          (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 5) or \
-          (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 5)):
+          ((abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > 7) or \
+          (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 7) or \
+          (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 7)):
             
           pose_and_vel = PoseStamped()
           pose_and_vel.pose.orientation.x = rotation_from_target_to_global[0]

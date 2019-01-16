@@ -40,26 +40,10 @@ leg_pub = rospy.message_pub = rospy.Publisher("/aqua/periodic_leg_command", Peri
 '''
 def affirmative_handler(req):
     if thrust_mode == 'PERIODIC':
-        rospy.loginfo('[AFFIRMATIVE] Periodic Leg Command version initiated.')
-
-        start = rospy.Time.now()
-        finish = start + rospy.Duration.from_sec(10)
-
-        trans_zero_down = start + rospy.Duration.from_sec(2)
-        #first_down = trans_zero_down + rospy.Duration.from_sec(0.5)
-        trans_downup1 = trans_zero_down + rospy.Duration.from_sec(1)
-        first_up = trans_downup1 + rospy.Duration.from_sec(2)
-        trans_updown1 = first_up + rospy.Duration.from_sec(1)
-        second_down = trans_updown1 + rospy.Duration.from_sec(2)
-        trans_downup2 = second_down + rospy.Duration.from_sec(1)
-        second_up = trans_downup2 + rospy.Duration.from_sec(2)
-        trans_up_zero = second_up + rospy.Duration.from_sec(1)
-        
+        rospy.loginfo('[AFFIRMATIVE] Periodic Leg Command version initiated.')  
 
         plc = PeriodicLegCommand()
         plc.header.frame_id = '/aqua_base'
-
-        plc.header.stamp = rospy.Time.now()
 
         rate = rospy.Rate(50)
         current_offsets = [0,0,0,0,0,0]
@@ -67,28 +51,145 @@ def affirmative_handler(req):
         offset_delta_half = (pi/2)/50
         offset_delta_full = (pi)/50
 
-        down = True
+        cmds = ['center2down', 'down2up', 'up', 'up2down', 'down', 'down2up', 'up', 'up2down', 'down2center', 'stable']
+        while cmds:
+            cmd = cmds.pop(0)
+            rospy.loginfo('Current command: %s'%(cmd))
 
-        while rospy.Time.now() < finish:
-            plc.header.stamp = rospy.Time.now()
-            if down == True:
-                current_offsets[0] -= offset_delta_half
-                current_offsets[2] += offset_delta_half
-                current_offsets[3] -= offset_delta_half
-                current_offsets[5] += offset_delta_half
+            if cmd == 'center2down':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                offset_delta = offset_delta_half
+
+                plc.amplitudes = [0,0,0,0,0,0]
+                plc.frequencies = [0,0,0,0,0,0]
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    current_offsets[0] -= offset_delta
+                    current_offsets[3] -= offset_delta
+                    current_offsets[2] += offset_delta
+                    current_offsets[5] += offset_delta
+
+                    plc.leg_offsets = current_offsets
+                    leg_pub.publish(plc)
+                    rate.sleep()
+
+            elif cmd == 'down2center':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                offset_delta = offset_delta_half
+
+                plc.amplitudes = [0,0,0,0,0,0]
+                plc.frequencies = [0,0,0,0,0,0]
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    current_offsets[0] += offset_delta
+                    current_offsets[3] += offset_delta
+                    current_offsets[2] -= offset_delta
+                    current_offsets[5] -= offset_delta
+
+                    plc.leg_offsets = current_offsets
+                    leg_pub.publish(plc)
+                    rate.sleep()
+
+            elif cmd == 'center2up':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                offset_delta = offset_delta_half
+
+                plc.amplitudes = [0,0,0,0,0,0]
+                plc.frequencies = [0,0,0,0,0,0]
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    current_offsets[0] += offset_delta
+                    current_offsets[3] += offset_delta
+                    current_offsets[2] -= offset_delta
+                    current_offsets[5] -= offset_delta
+
+                    plc.leg_offsets = current_offsets
+                    leg_pub.publish(plc)
+                    rate.sleep()
+
+            elif cmd == 'up2center':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                offset_delta = offset_delta_half
+
+                plc.amplitudes = [0,0,0,0,0,0]
+                plc.frequencies = [0,0,0,0,0,0]
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    current_offsets[0] -= offset_delta
+                    current_offsets[3] -= offset_delta
+                    current_offsets[2] += offset_delta
+                    current_offsets[5] += offset_delta
+
+                    plc.leg_offsets = current_offsets
+                    leg_pub.publish(plc)
+                    rate.sleep()
+
+            elif cmd == 'down2up':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                offset_delta = offset_delta_full
+
+                plc.amplitudes = [0,0,0,0,0,0]
+                plc.frequencies = [0,0,0,0,0,0]
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    current_offsets[0] += offset_delta
+                    current_offsets[3] += offset_delta
+                    current_offsets[2] -= offset_delta
+                    current_offsets[5] -= offset_delta
+
+                    plc.leg_offsets = current_offsets
+                    leg_pub.publish(plc)
+                    rate.sleep()
+
+            elif cmd == 'up2down':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                offset_delta = offset_delta_full
+
+                plc.amplitudes = [0,0,0,0,0,0]
+                plc.frequencies = [0,0,0,0,0,0]
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    current_offsets[0] -= offset_delta
+                    current_offsets[3] -= offset_delta
+                    current_offsets[2] += offset_delta
+                    current_offsets[5] += offset_delta
+
+                    plc.leg_offsets = current_offsets
+                    leg_pub.publish(plc)
+                    rate.sleep()
+
+            elif cmd == 'down':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                plc.leg_offsets = current_offsets
+                plc.amplitudes = [pi/4, 0, pi/4, pi/4, 0, pi/4]
+                plc.frequencies = [1, 0, 1, 1, 0, 1]
+
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    leg_pub.publish(plc)
+
+            elif cmd == 'up':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                plc.leg_offsets = current_offsets
+                plc.amplitudes = [pi/4, 0, pi/4, pi/4, 0, pi/4]
+                plc.frequencies = [1, 0, 1, 1, 0, 1]
+
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    leg_pub.publish(plc)
+
+            elif cmd == 'stable':
+                end = rospy.Time.now() + rospy.Duration.from_sec(1)
+                current_offsets = [0,0,0,0,0,0]
+                while rospy.Time.now() < end:
+                    plc.header.stamp = rospy.Time.now()
+                    plc.leg_offsets = current_offsets
+                    leg_pub.publish(plc)
+                    rate.sleep()
+
+
             else:
-                current_offsets[0] += offset_delta_half
-                current_offsets[2] -= offset_delta_half
-                current_offsets[3] += offset_delta_half
-                current_offsets[5] -= offset_delta_half
-            plc.leg_offsets = current_offsets
-
-            if abs(current_offsets[0]) >= pi/4:
-                down = ~down
-
-            leg_pub.publish(plc)
-            rate.sleep()
-
+                rospy.logwarn('Invalid command code.')
 
         return True
 
@@ -102,9 +203,9 @@ def affirmative_handler(req):
         rospy.loginfo(' [AFFIRMATIVE]: Pitch down...')
         pc.do_relative_angle_change([0, 20, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-        pc.do_relative_angle_change([0, -25, 0], d, vx, vz)
+        pc.do_relative_angle_change([0, -30, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch down again...')
-        pc.do_relative_angle_change([0, 25, 0], d, vx, vz)
+        pc.do_relative_angle_change([0, 30, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
         pc.do_relative_angle_change([0, -25, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Kineme complete!')
@@ -122,16 +223,36 @@ def affirmative_handler(req):
         # Nod robot up and down (pitches of 20 deg from center)
         rospy.loginfo(' [AFFIRMATIVE]: Initiating kinme.')
         rospy.loginfo(' [AFFIRMATIVE]: Pitch down...')
+
+        rads = pc.get_rpy_of_imu_in_global()
+        newdegs = [rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi]
+        degs[0] = newdegs[0]
+        degs[2] = newdegs[2]
         degs[1] += 20
         pc.goto_target_orientation(degs, d, vx, vz)
+
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-        degs[1] -= 45
+        rads = pc.get_rpy_of_imu_in_global()
+        newdegs = [rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi]
+        degs[0] = newdegs[0]
+        degs[2] = newdegs[2]
+        degs[1] -= 40
         pc.goto_target_orientation(degs, d, vx, vz)
+
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch down again...')
-        degs[1] += 50
+        rads = pc.get_rpy_of_imu_in_global()
+        newdegs = [rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi]
+        degs[0] = newdegs[0]
+        degs[2] = newdegs[2]
+        degs[1] += 40
         pc.goto_target_orientation(degs, d, vx, vz)
+
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-        degs[1] -= 25
+        rads = pc.get_rpy_of_imu_in_global()
+        newdegs = [rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi]
+        degs[0] = newdegs[0]
+        degs[2] = newdegs[2]
+        degs[1] -= 20
         pc.goto_target_orientation(degs, d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Kineme complete!')
 
@@ -219,7 +340,7 @@ def follow_me_handler(req):
         rospy.loginfo('  [FOLLOW_ME]: Forward (away from diver) for 5 seconds.')
         rads = pc.get_rpy_of_imu_in_global()
         degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
-        pc.do_straight_line(5, degs, d, 0.6, vz)
+        pc.do_straight_line(15, degs, d, 0.6, vz)
 
         rospy.loginfo('  [FOLLOW_ME]: Kineme completed!')
         
@@ -264,7 +385,7 @@ def follow_me_handler(req):
         rospy.loginfo('  [FOLLOW_ME]: Forward (away from diver) for 5 seconds.')
         rads = pc.get_rpy_of_imu_in_global()
         degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
-        pc.do_straight_line(5, degs, d, 0.6, vz)
+        pc.do_straight_line(15, degs, d, 0.6, vz)
 
         rospy.loginfo('  [FOLLOW_ME]: Kineme completed!')
         
@@ -434,7 +555,7 @@ def malfunction_handler(req):
 def negative_handler(req):
     if thrust_mode == 'PERIODIC':
         pass
-    elif thrust_mode == 'RELATIVE':
+    elif thrust_mode == 'GLOBAL':
         d = pc.current_depth
         vx = 0.5
         vz = 0
@@ -448,10 +569,10 @@ def negative_handler(req):
         degs[2] += 15
         pc.goto_target_orientation(degs, d, vx, vz)
         rospy.loginfo('  [NEGATIVE]: Yaw left.')
-        degs[2] -= 45
+        degs[2] -= 30
         pc.goto_target_orientation(degs, d, vx, vz)
         rospy.loginfo('  [NEGATIVE]: Yaw right.')
-        degs[2] += 60
+        degs[2] += 30
         pc.goto_target_orientation(degs, d, vx, vz)
         rospy.loginfo('  [NEGATIVE]: Yaw left (back to center).')
         degs[2] -= 15
@@ -461,7 +582,7 @@ def negative_handler(req):
         
         return True
 
-    elif thrust_mode == 'GLOBAL':
+    elif thrust_mode == 'RELATIVE':
         d = pc.current_depth
         vx = 0.5
         vz = 0
