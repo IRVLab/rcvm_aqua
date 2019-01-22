@@ -40,159 +40,7 @@ leg_pub = rospy.message_pub = rospy.Publisher("/aqua/periodic_leg_command", Peri
 '''
 def affirmative_handler(req):
     if thrust_mode == 'PERIODIC':
-        rospy.loginfo('[AFFIRMATIVE] Periodic Leg Command version initiated.')  
-
-        plc = PeriodicLegCommand()
-        plc.header.frame_id = '/aqua_base'
-
-        rate = rospy.Rate(50)
-        current_offsets = [0,0,0,0,0,0]
-        offset_delta_quarter = (pi/4)/50
-        offset_delta_half = (pi/2)/50
-        offset_delta_full = (pi)/50
-
-        cmds = ['center2down', 'down2up', 'up', 'up2down', 'down', 'down2up', 'up', 'up2down', 'down2center', 'stable']
-        while cmds:
-            cmd = cmds.pop(0)
-            rospy.loginfo('Current command: %s'%(cmd))
-
-            if cmd == 'center2down':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                offset_delta = offset_delta_half
-
-                plc.amplitudes = [0,0,0,0,0,0]
-                plc.frequencies = [0,0,0,0,0,0]
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    current_offsets[0] -= offset_delta
-                    current_offsets[3] -= offset_delta
-                    current_offsets[2] += offset_delta
-                    current_offsets[5] += offset_delta
-
-                    plc.leg_offsets = current_offsets
-                    leg_pub.publish(plc)
-                    rate.sleep()
-
-            elif cmd == 'down2center':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                offset_delta = offset_delta_half
-
-                plc.amplitudes = [0,0,0,0,0,0]
-                plc.frequencies = [0,0,0,0,0,0]
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    current_offsets[0] += offset_delta
-                    current_offsets[3] += offset_delta
-                    current_offsets[2] -= offset_delta
-                    current_offsets[5] -= offset_delta
-
-                    plc.leg_offsets = current_offsets
-                    leg_pub.publish(plc)
-                    rate.sleep()
-
-            elif cmd == 'center2up':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                offset_delta = offset_delta_half
-
-                plc.amplitudes = [0,0,0,0,0,0]
-                plc.frequencies = [0,0,0,0,0,0]
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    current_offsets[0] += offset_delta
-                    current_offsets[3] += offset_delta
-                    current_offsets[2] -= offset_delta
-                    current_offsets[5] -= offset_delta
-
-                    plc.leg_offsets = current_offsets
-                    leg_pub.publish(plc)
-                    rate.sleep()
-
-            elif cmd == 'up2center':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                offset_delta = offset_delta_half
-
-                plc.amplitudes = [0,0,0,0,0,0]
-                plc.frequencies = [0,0,0,0,0,0]
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    current_offsets[0] -= offset_delta
-                    current_offsets[3] -= offset_delta
-                    current_offsets[2] += offset_delta
-                    current_offsets[5] += offset_delta
-
-                    plc.leg_offsets = current_offsets
-                    leg_pub.publish(plc)
-                    rate.sleep()
-
-            elif cmd == 'down2up':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                offset_delta = offset_delta_full
-
-                plc.amplitudes = [0,0,0,0,0,0]
-                plc.frequencies = [0,0,0,0,0,0]
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    current_offsets[0] += offset_delta
-                    current_offsets[3] += offset_delta
-                    current_offsets[2] -= offset_delta
-                    current_offsets[5] -= offset_delta
-
-                    plc.leg_offsets = current_offsets
-                    leg_pub.publish(plc)
-                    rate.sleep()
-
-            elif cmd == 'up2down':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                offset_delta = offset_delta_full
-
-                plc.amplitudes = [0,0,0,0,0,0]
-                plc.frequencies = [0,0,0,0,0,0]
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    current_offsets[0] -= offset_delta
-                    current_offsets[3] -= offset_delta
-                    current_offsets[2] += offset_delta
-                    current_offsets[5] += offset_delta
-
-                    plc.leg_offsets = current_offsets
-                    leg_pub.publish(plc)
-                    rate.sleep()
-
-            elif cmd == 'down':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                plc.leg_offsets = current_offsets
-                plc.amplitudes = [pi/4, 0, pi/4, pi/4, 0, pi/4]
-                plc.frequencies = [1, 0, 1, 1, 0, 1]
-
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    leg_pub.publish(plc)
-
-            elif cmd == 'up':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                plc.leg_offsets = current_offsets
-                plc.amplitudes = [pi/4, 0, pi/4, pi/4, 0, pi/4]
-                plc.frequencies = [1, 0, 1, 1, 0, 1]
-
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    leg_pub.publish(plc)
-
-            elif cmd == 'stable':
-                end = rospy.Time.now() + rospy.Duration.from_sec(1)
-                current_offsets = [0,0,0,0,0,0]
-                while rospy.Time.now() < end:
-                    plc.header.stamp = rospy.Time.now()
-                    plc.leg_offsets = current_offsets
-                    leg_pub.publish(plc)
-                    rate.sleep()
-
-
-            else:
-                rospy.logwarn('Invalid command code.')
-
-        return True
-
+        pass
     elif thrust_mode == 'RELATIVE':
         d = pc.current_depth
         vx = 0.5
@@ -261,7 +109,7 @@ def affirmative_handler(req):
 
 def attention_handler(req):
     d = pc.current_depth
-    vx = 0 
+    vx = 0.2
     vz = 0
 
     # Roll robot by 60 deg from center, with small pitch and yaw (5 deg from center)
@@ -282,7 +130,7 @@ def attention_handler(req):
 
 def danger_handler(req):
     d = pc.current_depth
-    vx = 0 
+    vx = 0.2
     vz = 0
 
     #Swim robot forward for a moment, look back and forth, swim forward again, vehemently "shake head"
@@ -450,7 +298,7 @@ def indicate_movement_handler(req):
 # TODO: Respond to object orientation.
 def indicate_object_handler(req):
     d = pc.current_depth
-    vx = 0 
+    vx = 0.2
     vz = 0
 
     rospy.loginfo('  [INDICATE_OBJECT]: Kineme initiated.')
@@ -625,7 +473,7 @@ def possibly_handler(req):
 
 def repeat_last_handler(req):
     d = pc.current_depth
-    vx = 0 
+    vx = 0.3
     vz = 0
 
     # "Cock an ear" by doing a 20, 10, 15 RPY, then go back after 2 seconds.
