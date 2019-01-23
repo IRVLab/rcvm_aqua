@@ -48,18 +48,23 @@ def affirmative_handler(req):
         vx = 0.3
         vz = 0
 
+        p_gain = rospy.get_param('/localAP/PITCH_P_GAIN', 1.5)
+
+        rospy.set_param('/localAP/PITCH_P_GAIN', 100)
+
         # Nod robot up and down (pitches of 20 deg from center)
         rospy.loginfo(' [AFFIRMATIVE]: Initiating kinme.')
         rospy.loginfo(' [AFFIRMATIVE]: Pitch down...')
-        pc.do_relative_angle_change([0, 15, 0], d, vx, vz)
+        pc.do_relative_angle_change([0, 20, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-        pc.do_relative_angle_change([0, -30, 0], d, vx, vz)
+        pc.do_relative_angle_change([0, -40, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch down again...')
-        pc.do_relative_angle_change([0, 30, 0], d, vx, vz)
+        pc.do_relative_angle_change([0, 40, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-        pc.do_relative_angle_change([0, -20, 0], d, vx, vz)
+        pc.do_relative_angle_change([0, -25, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Kineme complete!')
 
+        rospy.set_param('/localAP/PITCH_P_GAIN', p_gain)
         return True
 
     elif thrust_mode == 'GLOBAL':
@@ -248,29 +253,27 @@ def indicate_movement_handler(req):
     z = movement_vector.z 
     y = movement_vector.y
 
-    direction = rospy.get_param('/rcvm/movement_direction', 'NULL')
-
     ind_ang = [0, 0, 0]
     back_ang = [0, 0, 0]
     move_ang = [0, 0, 0]
 
-    if z > 0 or direction == 'UP':
+    if z > 0:
         ind_ang[1] = -45
         back_ang[1] = 80
         move_ang[1] = -80
-    elif z < 0 or direction == 'DOWN':
+    elif z < 0:
         ind_ang[1]  = 45
         back_ang[1] = -80
         move_ang[1] = 80
 
-    if y > 0 or direction == 'RIGHT':
-        ind_ang[2] = -45
-        back_ang[2] = 60
-        move_ang[2] = -60
-    elif y < 0 or direction == 'LEFT':
-        ind_ang[2]  = 45
-        back_ang[2] = -60
-        move_ang[2] = 60
+    if y > 0:
+        ind_ang[2] = 68
+        back_ang[2] = -85
+        move_ang[2] = 85
+    elif y < 0:
+        ind_ang[2]  = -68
+        back_ang[2] = 85
+        move_ang[2] = -85
 
     d = pc.current_depth
     vx = 0.25
@@ -283,7 +286,7 @@ def indicate_movement_handler(req):
     rospy.loginfo('  [INDICATE_MOVEMENT]: Move foreward a bit')
     rads = pc.get_rpy_of_imu_in_global()
     degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
-    pc.do_straight_line(4, degs, d, 0.3, vz)
+    pc.do_straight_line(6, degs, d, 0.3, vz)
 
     rospy.loginfo('  [INDICATE_MOVEMENT]: Rotate back to the diver')
     pc.do_relative_angle_change(back_ang, d, 0.4, vz)
@@ -311,9 +314,9 @@ def indicate_object_handler(req):
     pitch = int(pc.RAD2DEG(rads[1]))
     yaw   = int(pc.RAD2DEG(rads[2]))
 
-    rdelta = abs(roll)/4
-    pdelta = abs(pitch)/2
-    ydelta = abs(yaw)/3
+    rdelta = roll/4
+    pdelta = pitch/2
+    ydelta = yaw/3
 
     rospy.loginfo(' [INDICATE_OBJECT]: Relative orientation is {}'.format([roll, pitch, yaw]))
 
@@ -321,23 +324,26 @@ def indicate_object_handler(req):
     rospy.loginfo('  [INDICATE_OBJECT]: Look towards object and move forward.')
     pc.do_relative_angle_change([roll, pitch, yaw], d, vx, vz)
 
-    # rospy.loginfo('  [INDICATE_OBJECT]: Do interested roll.')
-    # pc.do_relative_angle_change([15, 0, 0], d, vx, vz)
-    # pc.do_relative_angle_change([-15, 0, 0], d, vx, vz)
+    rads = pc.get_rpy_of_imu_in_global()
+    degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
+    pc.do_straight_line(2, degs, d, 0.3, vz)
 
-    roll += sign(roll) * rdelta
-    pitch += sign(pitch) * pdelta
-    yaw += sign(yaw) * ydelta
+    roll    += rdelta
+    pitch   += pdelta
+    yaw     += ydelta
+
+    rospy.loginfo(' [INDICATE_OBJECT]: Lookback {}'.format([-roll, -pitch, -yaw]))
 
     rospy.loginfo('  [INDICATE_OBJECT]: Look back at diver.')
     pc.do_relative_angle_change([-roll, -pitch, -yaw], d, vx, vz)
+    pitch   -= pdelta
     rospy.loginfo('  [INDICATE_OBJECT]: Look back to object')
     pc.do_relative_angle_change([roll, pitch, yaw], d, vx, vz)
 
     rospy.loginfo('  [INDICATE_OBJECT]: Move towards object.')
     rads = pc.get_rpy_of_imu_in_global()
     degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
-    pc.do_straight_line(2, degs, d, 0.3, vz)
+    pc.do_straight_line(2, degs, d, 0.5, vz)
 
     rospy.loginfo('  [INDICATE_OBJECT]: Kineme completed!')
     
@@ -409,12 +415,13 @@ def lost_handler(req):
 def malfunction_handler(req):
     d = pc.current_depth
     vx = 0.2 
-    vz = 0.1
+    vz = 0.0
 
     rospy.loginfo('  [MALFUNCTION]: Kineme initiated.')
     # Belly-up the robot (roll 180 deg), then move forwards and up slowly.
     rospy.loginfo('  [MALFUNCTION]: Belly up the robot (roll of 180), moving forward and slightly up.')
-    pc.do_relative_angle_change([180, 0, 0], d, vx, vz)
+    pc.do_relative_angle_change([90, 0, 0], d, vx, vz, check_pitch=False, check_yaw=False)
+    
     rads = pc.get_rpy_of_imu_in_global()
     degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
     rospy.loginfo('  [MALFUNCTION]: Forward and up more for 2 seconds..')

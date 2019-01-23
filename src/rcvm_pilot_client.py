@@ -181,7 +181,7 @@ class RCVMPilotClient:
                                 abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi, 
                                 abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi)
             
-    def do_relative_angle_change(self, delta_angles_deg, target_depth, vx, vz, time_sec=None):
+    def do_relative_angle_change(self, delta_angles_deg, target_depth, vx, vz, time_sec=None, threshold=7, check_roll=True, check_pitch=True, check_yaw=True):
 
         print 'da: ', delta_angles_deg
         rpy_from_imu_to_global = self.get_rpy_of_imu_in_global()
@@ -204,9 +204,9 @@ class RCVMPilotClient:
         
         rate = rospy.Rate(10.0)
         while (not rospy.is_shutdown()) and \
-          ((abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > 7) or \
-          (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > 7) or \
-          (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > 7)):
+          ( ((not check_roll) or (abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > threshold)) or \
+            ((not check_pitch) or (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > threshold)) or \
+            ((not check_yaw) or (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > threshhold))):
             
           pose_and_vel = PoseStamped()
           pose_and_vel.pose.orientation.x = rotation_from_target_to_global[0]
