@@ -1,0 +1,6 @@
+<launch>
+   <include file="$(find rcvm_aqua)/launch/rcvm.launch"/>
+   <include file="$(find rcvm_aqua)/launch/rcvm_record.launch"/>
+	<node pkg="rcvm_aqua" type="indicate_movement_left.sh" name="indicate_movement"/>
+</launch>
+

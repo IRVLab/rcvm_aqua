@@ -3,8 +3,10 @@
 import sys, math, threading, signal
 from time import sleep
 from math import pi
+from numpy import sign
 
 import rospy
+from tf.transformations import euler_from_quaternion
 
 from aquacore.msg import AutopilotModes, PeriodicLegCommand
 from rcvm_pilot_client import RCVMPilotClient
@@ -43,19 +45,19 @@ def affirmative_handler(req):
         pass
     elif thrust_mode == 'RELATIVE':
         d = pc.current_depth
-        vx = 0.5
+        vx = 0.3
         vz = 0
 
         # Nod robot up and down (pitches of 20 deg from center)
         rospy.loginfo(' [AFFIRMATIVE]: Initiating kinme.')
         rospy.loginfo(' [AFFIRMATIVE]: Pitch down...')
-        pc.do_relative_angle_change([0, 20, 0], d, vx, vz)
+        pc.do_relative_angle_change([0, 15, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
         pc.do_relative_angle_change([0, -30, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch down again...')
         pc.do_relative_angle_change([0, 30, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-        pc.do_relative_angle_change([0, -25, 0], d, vx, vz)
+        pc.do_relative_angle_change([0, -20, 0], d, vx, vz)
         rospy.loginfo(' [AFFIRMATIVE]: Kineme complete!')
 
         return True
@@ -246,27 +248,29 @@ def indicate_movement_handler(req):
     z = movement_vector.z 
     y = movement_vector.y
 
+    direction = rospy.get_param('/rcvm/movement_direction', 'NULL')
+
     ind_ang = [0, 0, 0]
     back_ang = [0, 0, 0]
     move_ang = [0, 0, 0]
 
-    if z > 0:
+    if z > 0 or direction == 'UP':
         ind_ang[1] = -45
         back_ang[1] = 80
         move_ang[1] = -80
-    elif z < 0:
+    elif z < 0 or direction == 'DOWN':
         ind_ang[1]  = 45
         back_ang[1] = -80
         move_ang[1] = 80
 
-    if y > 0:
+    if y > 0 or direction == 'RIGHT':
         ind_ang[2] = -45
-        back_ang[2] = 135
-        move_ang[2] = -135
-    elif y < 0:
+        back_ang[2] = 60
+        move_ang[2] = -60
+    elif y < 0 or direction == 'LEFT':
         ind_ang[2]  = 45
-        back_ang[2] = -135
-        move_ang[2] = 135
+        back_ang[2] = -60
+        move_ang[2] = 60
 
     d = pc.current_depth
     vx = 0.25
@@ -301,13 +305,34 @@ def indicate_object_handler(req):
     vx = 0.2
     vz = 0
 
+    q = req.relative_orientation
+    rads = euler_from_quaternion([q.x, q.y, q.z, q.w])
+    roll  = int(pc.RAD2DEG(rads[0]))
+    pitch = int(pc.RAD2DEG(rads[1]))
+    yaw   = int(pc.RAD2DEG(rads[2]))
+
+    rdelta = abs(roll)/4
+    pdelta = abs(pitch)/2
+    ydelta = abs(yaw)/3
+
+    rospy.loginfo(' [INDICATE_OBJECT]: Relative orientation is {}'.format([roll, pitch, yaw]))
+
     rospy.loginfo('  [INDICATE_OBJECT]: Kineme initiated.')
     rospy.loginfo('  [INDICATE_OBJECT]: Look towards object and move forward.')
-    pc.do_relative_angle_change([0,15,15], d, 0.25, vz)
+    pc.do_relative_angle_change([roll, pitch, yaw], d, vx, vz)
+
+    # rospy.loginfo('  [INDICATE_OBJECT]: Do interested roll.')
+    # pc.do_relative_angle_change([15, 0, 0], d, vx, vz)
+    # pc.do_relative_angle_change([-15, 0, 0], d, vx, vz)
+
+    roll += sign(roll) * rdelta
+    pitch += sign(pitch) * pdelta
+    yaw += sign(yaw) * ydelta
+
     rospy.loginfo('  [INDICATE_OBJECT]: Look back at diver.')
-    pc.do_relative_angle_change([0,-30,-30], d, vx, vz)
+    pc.do_relative_angle_change([-roll, -pitch, -yaw], d, vx, vz)
     rospy.loginfo('  [INDICATE_OBJECT]: Look back to object')
-    pc.do_relative_angle_change([0,30,30], d, vx, vz)
+    pc.do_relative_angle_change([roll, pitch, yaw], d, vx, vz)
 
     rospy.loginfo('  [INDICATE_OBJECT]: Move towards object.')
     rads = pc.get_rpy_of_imu_in_global()
@@ -405,7 +430,7 @@ def negative_handler(req):
         pass
     elif thrust_mode == 'GLOBAL':
         d = pc.current_depth
-        vx = 0.5
+        vx = 0.3
         vz = 0
 
         rads = pc.get_rpy_of_imu_in_global()
@@ -432,7 +457,7 @@ def negative_handler(req):
 
     elif thrust_mode == 'RELATIVE':
         d = pc.current_depth
-        vx = 0.5
+        vx = 0.3
         vz = 0
 
         rospy.loginfo('  [NEGATIVE]: Kineme initiated.')
@@ -479,11 +504,11 @@ def repeat_last_handler(req):
     # "Cock an ear" by doing a 20, 10, 15 RPY, then go back after 2 seconds.
     rospy.loginfo('  [REPEAT_LAST]: Kineme initated.')
     rospy.loginfo('  [REPEAT_LAST]: Cock ear.')
-    pc.do_relative_angle_change([20, 10, 15], d, vx, vz)
+    pc.do_relative_angle_change([-30, -15, 20], d, vx, vz)
     rospy.loginfo('  [REPEAT_LAST]: Wait.')
-    sleep(2)
+    sleep(5)
     rospy.loginfo('  [REPEAT_LAST]: Return to center.')
-    pc.do_relative_angle_change([-20, -10, -15], d, vx, vz)
+    pc.do_relative_angle_change([30, 15, -20], d, vx, vz)
 
     rospy.loginfo('  [REPEAT_LAST]: Kineme completed.')
     
