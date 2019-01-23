@@ -206,7 +206,7 @@ class RCVMPilotClient:
         while (not rospy.is_shutdown()) and \
           ( ((not check_roll) or (abs(self.angle_diff(rpy_from_imu_to_global[0], target_angles[0]))*180/pi > threshold)) or \
             ((not check_pitch) or (abs(self.angle_diff(rpy_from_imu_to_global[1], target_angles[1]))*180/pi > threshold)) or \
-            ((not check_yaw) or (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > threshhold))):
+            ((not check_yaw) or (abs(self.angle_diff(rpy_from_imu_to_global[2], target_angles[2]))*180/pi > threshold))):
             
           pose_and_vel = PoseStamped()
           pose_and_vel.pose.orientation.x = rotation_from_target_to_global[0]
