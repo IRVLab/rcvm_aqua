@@ -420,63 +420,13 @@ def malfunction_handler(req):
     vz = 0.0
 
     rospy.loginfo('  [MALFUNCTION]: Kineme initiated.')
-
-    #Kill the hover_midoff_node
-    rosnode.kill_nodes('/hover_midoff_node')
-
-    plc = PeriodicLegCommand()
-    plc.header.frame_id = '/aqua_base'
-    plc.header.stamp = rospy.Time.now()
-
-    rate = rospy.Rate(50)
-    current_offsets = [0,0,0,0,0,0]
-    delta = -(pi/2) /100
-
-    finish = rospy.Time.now() + rospy.Duration.from_sec(2)
-    while rospy.Time.now() < finish:
-        plc.header.stamp = rospy.Time.now()
-        current_offsets[0] += delta
-        current_offsets[1] += delta
-        current_offsets[2] += delta
-        current_offsets[3] += delta
-        current_offsets[4] += delta
-        current_offsets[5] += delta
-        plc.leg_offsets = current_offsets
-        leg_pub.publish(plc)
-        rate.sleep()
-
-    finish = rospy.Time.now() + rospy.Duration.from_sec(5)
-    while rospy.Time.now() < finish:
-        plc.header.stamp = rospy.Time.now()
-        plc.leg_offsets = current_offsets
-        leg_pub.publish(plc)
-        rate.sleep()
-
-    finish = rospy.Time.now() + rospy.Duration.from_sec(2)
-    while rospy.Time.now() < finish:
-        plc.header.stamp = rospy.Time.now()
-        current_offsets[0] -= delta
-        current_offsets[1] -= delta
-        current_offsets[2] -= delta
-        current_offsets[3] -= delta
-        current_offsets[4] -= delta
-        current_offsets[5] -= delta
-        plc.leg_offsets = current_offsets
-        leg_pub.publish(plc)
-        rate.sleep()
-
-    # # Restart hover_midoff_node
-    # package = 'aqua_gait'
-    # executable = 'hover_midoff_node'
-    # node = roslaunch.core.Node(package, executable)
-    # launch = roslaunch.scriptapi.ROSLaunch()
-    # launch.start()
-    # process = launch.launch(node)
+    pc.do_relative_angle_change([10, 20, 30], d, vx, vz)
 
     rads = pc.get_rpy_of_imu_in_global()
     degs = (rads[0] * 180/pi, rads[1] * 180/pi, rads[2] * 180/pi)
-    rospy.loginfo('  [MALFUNCTION]: Back to center, forward and up')
-    pc.do_straight_line(2, degs, d-1, vx, 0.3)
+    pc.do_straight_line( 10, degs, d, 0.1, 0)
+    sleep(5)
+    pc.do_relative_angle_change([-10, -20, -30], d, vx, vz)
 
     rospy.loginfo('  [MALFUNCTION]: Kineme completed!')
     
