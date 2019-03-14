@@ -478,7 +478,7 @@ def negative_handler(req):
             
 def possibly_handler(req):
     d = pc.current_depth
-    vx = 0 
+    vx = 0.3 
     vz = 0
 
     rospy.loginfo('  [POSSIBLY]: Kineme initiated.')
@@ -517,7 +517,7 @@ def repeat_last_handler(req):
 def report_battery_handler(req):
     d = pc.current_depth
     vx = 0.2
-    vz = 0.0
+    vz = 0.05
 
     energy = rospy.get_param('/rcvm/fake_battery', 100)
 
