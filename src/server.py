@@ -332,7 +332,7 @@ def indicate_object_handler(req):
     pc.do_relative_angle_change([-roll, -pitch, -yaw], d, vx, vz, check_roll=True, check_pitch=True, check_yaw=True)
     pitch   -= pdelta
     rospy.loginfo('  [INDICATE_OBJECT]: Look back to object')
-    pc.do_relative_angle_change([roll, pitch, yaw], d, vx, vz), check_roll=True, check_pitch=True, check_yaw=True
+    pc.do_relative_angle_change([roll, pitch, yaw], d, vx, vz, check_roll=True, check_pitch=True, check_yaw=True)
 
     rospy.loginfo('  [INDICATE_OBJECT]: Move towards object.')
     rads = pc.get_rpy_of_imu_in_global()
