@@ -45,11 +45,11 @@ leg_pub = rospy.message_pub = rospy.Publisher("/aqua/periodic_leg_command", Peri
 def affirmative_handler(req):
     if thrust_mode == 'RELATIVE':
         d = pc.current_depth
-        vx = 0.3
+        vx = 0.5
         vz = 0
 
         p_gain = rospy.get_param('/localAP/PITCH_P_GAIN', 10.0)
-        rospy.set_param('/localAP/PITCH_P_GAIN', 10.0)
+        rospy.set_param('/localAP/PITCH_P_GAIN', 25.0)
 
         # Nod robot up and down (pitches of 20 deg from center)
         rospy.loginfo(' [AFFIRMATIVE]: Initiating kinme.')
@@ -68,7 +68,7 @@ def affirmative_handler(req):
 
     elif thrust_mode == 'GLOBAL':
         d = pc.current_depth
-        vx = 0.3
+        vx = 0.5
         vz = 0
 
         rads = pc.get_rpy_of_imu_in_global()
@@ -172,7 +172,7 @@ def danger_handler(req):
 def follow_me_handler(req):
     if thrust_mode == 'RELATIVE':
         d = pc.current_depth
-        vx = 0.2
+        vx = 0.4
         vz = 0
 
         # Make a beckoning gesture with head, swim forward.
@@ -200,7 +200,7 @@ def follow_me_handler(req):
 
     elif thrust_mode == 'GLOBAL':
         d = pc.current_depth
-        vx = 0.2
+        vx = 0.5
         vz = 0
 
         rads = pc.get_rpy_of_imu_in_global()
