@@ -54,9 +54,9 @@ def affirmative_handler(req):
         # Nod robot up and down (pitches of 20 deg from center)
         rospy.loginfo(' [AFFIRMATIVE]: Initiating kinme.')
         rospy.loginfo(' [AFFIRMATIVE]: Pitch down...')
-        pc.do_relative_angle_change([0, 30, 0], d, vx, vz, check_roll=False, check_yaw=False, timeout=1.5)
+        pc.do_relative_angle_change([0, 30, 0], d, vx, vz, check_roll=False, check_yaw=False, timeout=2)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
-        pc.do_relative_angle_change([0, -60, 0], d, vx, vz, check_roll=False, check_yaw=False, timeout=3)
+        pc.do_relative_angle_change([0, -60, 0], d, vx, vz, check_roll=False, check_yaw=False, timeout=2)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch down again...')
         pc.do_relative_angle_change([0, 60, 0], d, vx, vz, check_roll=False, check_yaw=False, timeout=2)
         rospy.loginfo(' [AFFIRMATIVE]: Now pitch up...')
@@ -163,8 +163,8 @@ def danger_handler(req):
     pc.do_relative_angle_change([0, 0, 15], d, 0.3, vz)
     pc.do_relative_angle_change([0, 0, -30], d, 0.3, vz)
     pc.do_relative_angle_change([0, 0, 30], d, 0.3, vz)
-    pc.do_relative_angle_change([0, 0, -30], d, 0.3, vz)
-    pc.do_relative_angle_change([0, 0, 15], d, 0.3, vz)
+    #pc.do_relative_angle_change([0, 0, -30], d, 0.3, vz)
+    pc.do_relative_angle_change([0, 0, -15], d, 0.3, vz)
     rospy.loginfo('  [DANGER]: Kineme completed!')
 
     return True
