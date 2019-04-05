@@ -3,7 +3,6 @@
 import sys, math, threading, signal
 from time import sleep
 from math import pi
-from numpy import sign
 
 import rospy
 from tf.transformations import euler_from_quaternion
@@ -14,7 +13,7 @@ from aquacore.msg import AutopilotModes, PeriodicLegCommand
 from rcvm_pilot_client import RCVMPilotClient
 
 from rcvm_core.srv import Affirmative, Attention, Danger, FollowMe, IndicateMovement, IndicateObject
-from rcvm_core.srv import IndicateStay, Lost, Malfunction, Negative, Possibly, RepeatLast, ReportBattery
+from rcvm_core.srv import IndicateStay, Lost, Malfunction, Negative, RepeatLast, ReportBattery
 
 from timeout import Timeout
 
@@ -472,27 +471,6 @@ def negative_handler(req):
         
         return True
 
-            
-def possibly_handler(req):
-    d = pc.current_depth
-    vx = 0.3 
-    vz = 0
-
-    rospy.loginfo('  [POSSIBLY]: Kineme initiated.')
-    # Bobble the robot's "head", Rolls of 15 degrees off center.
-    rospy.loginfo('  [POSSIBLY]: Roll clockwise.')
-    pc.do_relative_angle_change([ 15, 0, 0], d, vx, vz)
-    rospy.loginfo('  [POSSIBLY]: Roll counter clockwise.')
-    pc.do_relative_angle_change([-30, 0, 0], d, vx, vz)
-    rospy.loginfo('  [POSSIBLY]: Roll clockwise')
-    pc.do_relative_angle_change([ 30, 0, 0], d, vx, vz)
-    rospy.loginfo('  [POSSIBLY]: Roll counter clockwise (back to center).')
-    pc.do_relative_angle_change([-15, 0, 0], d, vx, vz)
-
-    rospy.loginfo('  [POSSIBLY]: Kineme completed!')
-    
-    return True
-
 def repeat_last_handler(req):
     d = pc.current_depth
     vx = 0.3
@@ -541,7 +519,6 @@ if __name__ == "__main__":
     rospy.Service('/rcvm/lost', Lost, lost_handler)
     rospy.Service('/rcvm/malfunction', Malfunction, malfunction_handler)
     rospy.Service('/rcvm/negative', Negative, negative_handler)
-    rospy.Service('/rcvm/possibly', Possibly, possibly_handler)
     rospy.Service('/rcvm/repeat_last', RepeatLast, repeat_last_handler)
     rospy.Service('/rcvm/report_battery', ReportBattery, report_battery_handler)
 
