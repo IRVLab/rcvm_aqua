@@ -6,11 +6,11 @@ To use, you can either call the launch file for a specific kineme anytime you wa
 
 To use a launch file:
 
-    roslaunch rcvm_matrice [kineme_name.launch]
+    roslaunch rcvm_aqua [kineme_name.launch]
 
 To use the server manually:
 
-    rosrun rcvm_matrice server.py
+    rosrun rcvm_aqua server.py
     rosservice call /rcvm/[kineme_name] [service-args]
 
 
