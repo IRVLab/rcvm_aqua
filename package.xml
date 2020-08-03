@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>rcvm_aqua</name>
-  <version>0.1.0</version>
-  <description>Implementation of the RCVM kinemes for Aqua8</description>
+  <version>1.0.0</version>
+  <description>Implementation of the Robot Communication Via Motion (RCVM) kinemes for the Aqua robot.</description>
 
   <maintainer email="fulto081@umn.edu">Michael Fulton</maintainer>
 
   <license>MIT</license>
 
-  <url type="website">https://github.umn.edu/fulto081/rcvm_aqua</url>
+  <url type="website">https://github.umn.edu/fultonms/rcvm_aqua</url>
 
   <author email="fulto081@umn.edu">Michael Fulton</author> -->
 
